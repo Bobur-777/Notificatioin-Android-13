@@ -13,26 +13,28 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.PackageManagerCompat;
 
 public class MainActivity extends Activity {
     private Button button1;
     private NotificationManager notificationManager;
     private NotificationCompat.Builder mBuilder;
-
+private TextView textView;
     @Override
     protected void onCreate(Bundle savedIntsance) {
         super.onCreate(savedIntsance);
         setContentView(R.layout.main);
+        permission();
 
         button1 = findViewById(R.id.button1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                createNotificationChannel();
                 Intent intent = new Intent(MainActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 PendingIntent pendingIntent = PendingIntent.getActivity(MainActivity.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
@@ -46,12 +48,25 @@ public class MainActivity extends Activity {
                         notificationManager.notify(notifyId, mBuilder.build());
                     } else {
                         Toast.makeText(MainActivity.this, "Permission is not granted", Toast.LENGTH_SHORT).show();
-                       permission();
+                        permission();
                     }
                 }
             }
         });
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1000) {
+            textView = findViewById(R.id.textView);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                textView.setText("Permission granted");
+            } else {
+                textView.setText("Permission not granted");
+            }
+        }
     }
 
     public void createNotificationChannel() {
@@ -66,8 +81,6 @@ public class MainActivity extends Activity {
             channel.setShowBadge(true);
             channel.enableVibration(true);
 
-            mBuilder.setChannelId(channelId2);
-
             if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
             } else {
@@ -75,11 +88,12 @@ public class MainActivity extends Activity {
             }
         }
     }
+
     public void permission() {
-       if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
 
         } else {
-          requestPermissions(new String[] {Manifest.permission.POST_NOTIFICATIONS}, 1000);
-           }
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1000);
+        }
     }
 }
